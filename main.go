@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	cache := handler.NewLRUCache(3)
-	cache.Set(1, 1)
-	cache.Set(2, 2)
 	router := chi.NewRouter()
+	cache := handler.NewLRUCache(3)
 	router.Route("/lru", func(r chi.Router) {
 		r.Get("/{key}", cache.Get)
+		r.Post("/", cache.Set)
+		r.Delete("/{key}", cache.Delete)
 	})
-	fmt.Printf("server started at: %s", "3009")
+	fmt.Println("server started at: 3009")
 	http.ListenAndServe(":3009", router)
 }

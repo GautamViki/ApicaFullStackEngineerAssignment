@@ -52,29 +52,49 @@ func (l *mysqlLru) Get(w http.ResponseWriter, r *http.Request) {
 		Value: value,
 	}}
 	h.RespondwithJSON(w, http.StatusOK, lruResp)
-	return
 }
 
 // Set adds a value to the cache.
-func (l *mysqlLru) Set(key int, value int) {
+func (l *mysqlLru) Set(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	key, err := strconv.Atoi(query.Get("key"))
+	if err != nil {
+		h.RespondWithError(w, http.StatusBadRequest, "Key is invalid.", "LRU1001")
+		return
+	}
+	value, err := strconv.Atoi(query.Get("value"))
+	if err != nil {
+		h.RespondWithError(w, http.StatusBadRequest, "Value is invalid.", "LRU1002")
+		return
+	}
 	if ele, ok := l.lruCache.Cache[key]; ok {
 		l.lruCache.List.MoveToFront(ele)
 		ele.Value.(*dto.Entry).Value = value
-		return
 	}
 	if l.lruCache.List.Len() == l.lruCache.Capacity {
 		l.removeOldest()
 	}
 	ele := l.lruCache.List.PushFront(&dto.Entry{Key: key, Value: value})
 	l.lruCache.Cache[key] = ele
+
+	res := h.PrepareResponse(APISuccessCode, "Set Value in cache key successfully.")
+	h.RespondwithJSON(w, http.StatusCreated, res)
 }
 
 // Delete removes a value from the cache.
-func (l *mysqlLru) Delete(key int) {
+func (l *mysqlLru) Delete(w http.ResponseWriter, r *http.Request) {
+	key, err := strconv.Atoi(chi.URLParam(r, "key"))
+	if err != nil {
+		h.RespondWithError(w, http.StatusBadRequest, "Key is invalid.", "LRU1004")
+		return
+	}
 	if ele, ok := l.lruCache.Cache[key]; ok {
 		l.lruCache.List.Remove(ele)
 		delete(l.lruCache.Cache, key)
 	}
+
+	res := h.PrepareResponse(APISuccessCode, "Cache key deleted successfully.")
+	h.RespondwithJSON(w, http.StatusOK, res)
 }
 
 // removeOldest removes the oldest element from the cache.
