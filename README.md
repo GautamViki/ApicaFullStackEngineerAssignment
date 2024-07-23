@@ -21,6 +21,7 @@ Running the Application:
     go run main.go
 
 Usage:
+
     POST: http://localhost:3009/lru?key={key}&value={value}
         - Set the cache key
         curl --location --request POST 'http://localhost:3009/lru?key=20&value=30'
