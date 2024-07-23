@@ -34,7 +34,7 @@ type mysqlLru struct {
 }
 
 // Get retrieves a value from the cache.
-func (l *mysqlLru) Get(w http.ResponseWriter, r *http.Request) {
+func (l *mysqlLru) GetByKey(w http.ResponseWriter, r *http.Request) {
 	urlKey := chi.URLParam(r, "key")
 	key, err := strconv.Atoi(urlKey)
 	if err != nil {
@@ -52,6 +52,16 @@ func (l *mysqlLru) Get(w http.ResponseWriter, r *http.Request) {
 		Value: value,
 	}}
 	h.RespondwithJSON(w, http.StatusOK, lruResp)
+}
+
+func (l *mysqlLru) GetAll(w http.ResponseWriter, r *http.Request) {
+	lrus := []dto.Lru{}
+	for key, _ := range l.lruCache.Cache {
+		ele := l.lruCache.Cache[key]
+		lrus = append(lrus, dto.Lru{Key: key, Value: ele.Value.(*dto.Entry).Value})
+	}
+	res := h.PrepareResponse(APISuccessCode, "Cache Fetched Successfully.")
+	h.RespondwithJSON(w, http.StatusOK, dto.LrusResponses{Response: res, Lrus: lrus})
 }
 
 // Set adds a value to the cache.

@@ -9,6 +9,10 @@ type LruResponse struct {
 	helper.Response
 	LRU Lru
 }
+type LrusResponses struct {
+	helper.Response
+	Lrus []Lru
+}
 type Lru struct {
 	Key   int
 	Value int
