@@ -41,10 +41,13 @@ func (l *mysqlLru) GetByKey(w http.ResponseWriter, r *http.Request) {
 		h.RespondWithError(w, http.StatusBadRequest, "Key is invalid.", "LRU1000")
 		return
 	}
-	var value int
+	var value *int
+	defaultValue := -1
 	if ele, ok := l.lruCache.Cache[key]; ok {
 		l.lruCache.List.MoveToFront(ele)
-		value = ele.Value.(*dto.Entry).Value
+		value = &ele.Value.(*dto.Entry).Value
+	} else {
+		value = &defaultValue
 	}
 	res := h.PrepareResponse(APISuccessCode, "Key Fetched Successfully.")
 	lruResp := dto.LruResponse{Response: res, LRU: dto.Lru{
@@ -58,7 +61,7 @@ func (l *mysqlLru) GetAll(w http.ResponseWriter, r *http.Request) {
 	lrus := []dto.Lru{}
 	for key, _ := range l.lruCache.Cache {
 		ele := l.lruCache.Cache[key]
-		lrus = append(lrus, dto.Lru{Key: key, Value: ele.Value.(*dto.Entry).Value})
+		lrus = append(lrus, dto.Lru{Key: key, Value: &ele.Value.(*dto.Entry).Value})
 	}
 	res := h.PrepareResponse(APISuccessCode, "Cache Fetched Successfully.")
 	h.RespondwithJSON(w, http.StatusOK, dto.LrusResponses{Response: res, Lrus: lrus})

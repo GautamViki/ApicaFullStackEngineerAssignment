@@ -15,7 +15,7 @@ type LrusResponses struct {
 }
 type Lru struct {
 	Key   int
-	Value int
+	Value *int
 }
 
 type LRUCache struct {
